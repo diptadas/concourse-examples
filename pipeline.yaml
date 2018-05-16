@@ -1,0 +1,32 @@
+resource_types:
+- name: myk8s
+  type: docker-image
+  source:
+    repository: diptadas/concourse-k8s
+    tag: latest
+resources:
+- name: k8s-cfg
+  type: myk8s
+  source:
+    kubeconfig: /kube/config
+    namespace: default
+    name: my-config
+
+jobs:
+- name: hello-world
+  plan:
+  - get: k8s-cfg
+    params:
+      fileName: my-config.yaml
+    trigger: true
+  - task: show-result
+    config:
+      inputs:
+      - name: k8s-cfg
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: ubuntu}
+      run:
+        path: cat
+        args: ["./k8s-cfg/my-config.yaml"]
